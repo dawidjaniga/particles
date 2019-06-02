@@ -777,6 +777,7 @@ var ctx = canvas.getContext('2d');
 var particles = [];
 var config = {
   particles_amount: 10,
+  new_particles_amount: 10,
   particle_width: 1,
   particle_color: '#fff',
   line_color: '255, 255, 255',
@@ -789,7 +790,7 @@ addParticles(config.particles_amount);
 window.requestAnimationFrame(draw);
 
 function drawBackground() {
-  ctx.fillStyle = 'black';
+  ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -801,7 +802,7 @@ function setup() {
 
 function attachHandlers() {
   canvas.addEventListener('click', function (event) {
-    addParticles(10, event.offsetX, event.offsetY);
+    addParticles(config.new_particles_amount, event.offsetX, event.offsetY);
   });
 }
 
@@ -812,15 +813,19 @@ function setCanvasSize(width, height) {
 
 function addParticles(amount, baseX, baseY) {
   for (var i = 0; i < amount; i++) {
-    particles.push({
-      x: baseX || (0, _random.default)(0, ctx.canvas.width),
-      y: baseY || (0, _random.default)(0, ctx.canvas.height),
-      xDirection: getRandomDirection(),
-      yDirection: getRandomDirection(),
-      speedX: getRandomSpeed(),
-      speedY: getRandomSpeed()
-    });
+    particles.push(generateParticle(baseX || (0, _random.default)(0, ctx.canvas.width), baseY || (0, _random.default)(0, ctx.canvas.height)));
   }
+}
+
+function generateParticle(x, y) {
+  return {
+    x: x,
+    y: y,
+    xDirection: getRandomDirection(),
+    yDirection: getRandomDirection(),
+    speedX: getRandomSpeed(),
+    speedY: getRandomSpeed()
+  };
 }
 
 function getRandomSpeed() {
@@ -926,7 +931,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52098" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58756" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

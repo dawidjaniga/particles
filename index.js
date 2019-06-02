@@ -5,6 +5,7 @@ const ctx = canvas.getContext('2d')
 const particles = []
 const config = {
     particles_amount: 10,
+    new_particles_amount: 10,
     particle_width: 1,
     particle_color: '#fff',
     line_color: '255, 255, 255',
@@ -18,7 +19,7 @@ addParticles(config.particles_amount)
 window.requestAnimationFrame(draw)
 
 function drawBackground() {
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -30,7 +31,7 @@ function setup () {
 
 function attachHandlers() {
     canvas.addEventListener('click', event => {
-        addParticles(10, event.offsetX, event.offsetY)
+        addParticles(config.new_particles_amount, event.offsetX, event.offsetY)
     })
 }
 
@@ -41,14 +42,23 @@ function setCanvasSize(width, height) {
 
 function addParticles(amount, baseX, baseY) {
     for(let i=0; i < amount; i++) {
-        particles.push({
-            x: baseX || random(0, ctx.canvas.width),
-            y: baseY || random(0, ctx.canvas.height),
-            xDirection: getRandomDirection(),
-            yDirection: getRandomDirection(),
-            speedX: getRandomSpeed(),
-            speedY: getRandomSpeed()
-        })
+        particles.push(
+            generateParticle(
+                baseX || random(0, ctx.canvas.width),
+                baseY || random(0, ctx.canvas.height)
+            )
+        )
+    }
+}
+
+function generateParticle(x, y) {
+    return {
+        x,
+        y,
+        xDirection: getRandomDirection(),
+        yDirection: getRandomDirection(),
+        speedX: getRandomSpeed(),
+        speedY: getRandomSpeed()
     }
 }
 
