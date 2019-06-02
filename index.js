@@ -1,18 +1,40 @@
+import * as dat from 'dat.gui'
 import random from 'lodash/random'
+import Stats from 'stats.js'
 
 const canvas = document.querySelector('canvas')
 const ctx = canvas.getContext('2d')
-const particles = []
+let particles = []
 const config = {
-    particles_amount: 10,
+    particles_amount: 60,
     new_particles_amount: 10,
     particle_width: 1,
     particle_color: '#fff',
-    line_color: '255, 255, 255',
+    line_color: [255, 255, 255],
     min_speed: 0.1,
     max_speed: 0.4,
     max_connecting_distance: 50
 }
+const gui = new dat.GUI({
+    width: 340
+})
+const particlesAmountController = gui
+    .add(config, 'particles_amount', 1, 500)
+    .name('Particles amount')
+gui.add(config, 'min_speed', 0, 10).name('Minimum speed')
+gui.add(config, 'max_speed', 0, 10).name('Maximum speed')
+gui.add(config, 'max_connecting_distance', 0, 500).name('Connecting distance')
+gui.addColor(config, 'particle_color').name('Particle color')
+gui.addColor(config, 'line_color').name('Connection color')
+
+particlesAmountController.onChange(() => {
+    clearParticles()
+    addParticles(config.particles_amount)
+})
+
+const stats = new Stats()
+stats.showPanel(0)
+document.body.appendChild(stats.dom)
 
 setup()
 addParticles(config.particles_amount)
@@ -51,6 +73,10 @@ function addParticles(amount, baseX, baseY) {
     }
 }
 
+function clearParticles() {
+    particles = []
+}
+
 function generateParticle(x, y) {
     return {
         x,
@@ -76,6 +102,7 @@ function drawParticle(x, y, color = config.particle_color) {
 }
 
 function draw() {
+    stats.begin()
     const canvasWidth = ctx.canvas.width
     const canvasHeight = ctx.canvas.height
     ctx.clearRect(0, 0, canvasWidth, canvasHeight)
@@ -107,6 +134,7 @@ function draw() {
         })
     })
 
+    stats.end()
     window.requestAnimationFrame(draw)
 }
 
