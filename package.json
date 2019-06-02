@@ -1,0 +1,11 @@
+{
+  "name": "particles",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:dawidjaniga/particles.git",
+  "author": "Dawid Janiga <dawidjaniga@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "4.17.11"
+  }
+}
