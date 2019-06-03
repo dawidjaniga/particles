@@ -5,6 +5,9 @@
   "repository": "git@github.com:dawidjaniga/particles.git",
   "author": "Dawid Janiga <dawidjaniga@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html"
+  },
   "dependencies": {
     "dat.gui": "0.7.6",
     "lodash": "4.17.11",
