@@ -15,7 +15,9 @@ const config = {
     line_color: [107,255,0],
     min_speed: 0.1,
     max_speed: 0.4,
-    max_connecting_distance: 44
+    max_connecting_distance: 44,
+    text: 'JANIGA',
+    draw_text_particles: false,
 }
 const gui = new dat.GUI({
     width: 340
@@ -28,8 +30,20 @@ gui.add(config, 'max_speed', 0, 10).name('Maximum speed')
 gui.add(config, 'max_connecting_distance', 0, 500).name('Connecting distance')
 gui.addColor(config, 'particle_color').name('Particle color')
 gui.addColor(config, 'line_color').name('Connection color')
+const textController = gui.add(config, 'text').name('Text to draw')
+const drawTextParticlesController = gui.add(config, 'draw_text_particles').name('Draw text particles')
 
 particlesAmountController.onChange(() => {
+    clearParticles()
+    setup()
+})
+
+textController.onChange(() => {
+    clearParticles()
+    setup()
+})
+
+drawTextParticlesController.onChange(() => {
     clearParticles()
     setup()
 })
@@ -40,7 +54,7 @@ document.body.appendChild(stats.dom)
 setup()
 window.requestAnimationFrame(draw)
 
-function addFixedParticles(data) {
+function addTextParticles(data) {
     data.forEach(item => {
         particles.push(
             generateParticle({
@@ -49,7 +63,7 @@ function addFixedParticles(data) {
                 speedX: 0,
                 speedY: 0,
                 connectable: false,
-                drawable: false,
+                drawable: config.draw_text_particles,
             })
         )  
     })
@@ -59,8 +73,7 @@ function strokeText() {
     const size = 160
     textCtx.font = `bold ${size}px Impact`;
     textCtx.strokeStyle = `rgb(${config.line_color})`
-    // textCtx.setLineDash([10, 10]);
-    textCtx.strokeText('JANIGA', 100, size + 200);
+    textCtx.strokeText(config.text, 100, size + 200);
 }
 
 function getTextBoundaryPixels() {
@@ -107,9 +120,13 @@ function setup () {
     addCursorParticle()
     addParticles(config.particles_amount)
     strokeText()
-    const textBoundary = getTextBoundaryPixels()
-    const transformedBoundary = textBoundary.filter((item, index) => index % 10 === 0)
-    addFixedParticles(transformedBoundary)
+    addTextParticles(
+        getTextBoundaryPixels().filter(takeEveryNthElement(10))
+    )
+}
+
+function takeEveryNthElement(n) {
+    return (item, index) => index % n ===  0
 }
 
 function addCursorParticle() {
