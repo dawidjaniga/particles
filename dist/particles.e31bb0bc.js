@@ -3747,9 +3747,8 @@ function strokeText() {
   textCtx.strokeText('JANIGA', 100, size + 200);
 }
 
-function getData() {
+function getTextBoundaryPixels() {
   var imageData = textCtx.getImageData(0, 0, canvas.width, canvas.height);
-  console.log('imageData:', imageData);
   var x = 1;
   var y = 1;
   var boundary = [];
@@ -3765,10 +3764,9 @@ function getData() {
       y++;
     }
 
-    x++; // console.log('color', red, green, blue, alpha)
+    x++;
 
     if (alpha > 0) {
-      // console.log('x y:', x, y)
       boundary.push({
         x: x,
         y: y
@@ -3776,7 +3774,6 @@ function getData() {
     }
   }
 
-  console.log('boundary:', boundary.length);
   return boundary;
 }
 
@@ -3793,11 +3790,10 @@ function setup() {
   addCursorParticle();
   addParticles(config.particles_amount);
   strokeText();
-  var textBoundary = getData();
+  var textBoundary = getTextBoundaryPixels();
   var transformedBoundary = textBoundary.filter(function (item, index) {
     return index % 10 === 0;
   });
-  console.log('transformedBoundary:', transformedBoundary.length);
   addFixedParticles(transformedBoundary);
 }
 

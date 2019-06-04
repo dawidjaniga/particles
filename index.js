@@ -63,9 +63,8 @@ function strokeText() {
     textCtx.strokeText('JANIGA', 100, size + 200);
 }
 
-function getData() {
+function getTextBoundaryPixels() {
     const imageData =  textCtx.getImageData(0, 0, canvas.width, canvas.height)
-    console.log('imageData:', imageData)
     
     let x = 1
     let y = 1
@@ -80,24 +79,17 @@ function getData() {
         if (i > 0 && (i / 4) % imageData.width === 0) {
             x = 0
             y++
-
         }
 
         x++
         
-        
-        // console.log('color', red, green, blue, alpha)
         if (alpha > 0) {
-            // console.log('x y:', x, y)
             boundary.push({
                 x,
                 y
             })
         }
-
     }
-    
-    console.log('boundary:', boundary.length)
 
     return boundary
 }
@@ -115,9 +107,8 @@ function setup () {
     addCursorParticle()
     addParticles(config.particles_amount)
     strokeText()
-    const textBoundary = getData()
+    const textBoundary = getTextBoundaryPixels()
     const transformedBoundary = textBoundary.filter((item, index) => index % 10 === 0)
-    console.log('transformedBoundary:', transformedBoundary.length)
     addFixedParticles(transformedBoundary)
 }
 
