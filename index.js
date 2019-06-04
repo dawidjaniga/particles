@@ -2,18 +2,20 @@ import * as dat from 'dat.gui'
 import random from 'lodash/random'
 import Stats from 'stats.js'
 
-const canvas = document.querySelector('canvas')
+const canvas = document.querySelector('#particles')
 const ctx = canvas.getContext('2d')
-let particles = []
+const textCanvas = document.querySelector('#text')
+const textCtx = textCanvas.getContext('2d')
+window.particles = []
 const config = {
-    particles_amount: 60,
+    particles_amount: 200,
     new_particles_amount: 10,
     particle_width: 1,
-    particle_color: '#fff',
-    line_color: [255, 255, 255],
+    particle_color: 'rgb(107,255,0)',
+    line_color: [107,255,0],
     min_speed: 0.1,
     max_speed: 0.4,
-    max_connecting_distance: 50
+    max_connecting_distance: 44
 }
 const gui = new dat.GUI({
     width: 340
@@ -29,18 +31,79 @@ gui.addColor(config, 'line_color').name('Connection color')
 
 particlesAmountController.onChange(() => {
     clearParticles()
-    addParticles(config.particles_amount)
+    setup()
 })
 
 const stats = new Stats()
-stats.showPanel(0)
 document.body.appendChild(stats.dom)
 
 setup()
-addParticles(config.particles_amount)
 window.requestAnimationFrame(draw)
 
+function addFixedParticles(data) {
+    data.forEach(item => {
+        particles.push(
+            generateParticle({
+                x: item.x,
+                y: item.y,
+                speedX: 0,
+                speedY: 0,
+                connectable: false,
+                drawable: false,
+            })
+        )  
+    })
+}
+
+function strokeText() {
+    const size = 160
+    textCtx.font = `bold ${size}px Impact`;
+    textCtx.strokeStyle = `rgb(${config.line_color})`
+    // textCtx.setLineDash([10, 10]);
+    textCtx.strokeText('JANIGA', 100, size + 200);
+}
+
+function getData() {
+    const imageData =  textCtx.getImageData(0, 0, canvas.width, canvas.height)
+    console.log('imageData:', imageData)
+    
+    let x = 1
+    let y = 1
+    const boundary = []
+
+    for (let i=0; i < imageData.data.length; i += 4) {
+        const red = imageData.data[i]
+        const green = imageData.data[i + 1]
+        const blue = imageData.data[i + 2]
+        const alpha = imageData.data[i + 3]
+
+        if (i > 0 && (i / 4) % imageData.width === 0) {
+            x = 0
+            y++
+
+        }
+
+        x++
+        
+        
+        // console.log('color', red, green, blue, alpha)
+        if (alpha > 0) {
+            // console.log('x y:', x, y)
+            boundary.push({
+                x,
+                y
+            })
+        }
+
+    }
+    
+    console.log('boundary:', boundary.length)
+
+    return boundary
+}
+
 function drawBackground() {
+    ctx.setLineDash([40, 20, 50, 10])
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
@@ -50,6 +113,12 @@ function setup () {
     drawBackground()
     attachHandlers()
     addCursorParticle()
+    addParticles(config.particles_amount)
+    strokeText()
+    const textBoundary = getData()
+    const transformedBoundary = textBoundary.filter((item, index) => index % 10 === 0)
+    console.log('transformedBoundary:', transformedBoundary.length)
+    addFixedParticles(transformedBoundary)
 }
 
 function addCursorParticle() {
@@ -75,15 +144,21 @@ function attachHandlers() {
 function setCanvasSize(width, height) {
     canvas.setAttribute('width', width);
     canvas.setAttribute('height', height);
+
+    textCanvas.setAttribute('width', width);
+    textCanvas.setAttribute('height', height);
 }
 
 function addParticles(amount, baseX, baseY) {
     for(let i=0; i < amount; i++) {
+        const fixed = 0 //random(0, 1)
         particles.push(
-            generateParticle(
-                baseX || random(0, ctx.canvas.width),
-                baseY || random(0, ctx.canvas.height)
-            )
+            generateParticle({
+                x: baseX || random(0, ctx.canvas.width),
+                y: baseY || random(0, ctx.canvas.height),
+                speedX: fixed ? 0 : getRandomSpeed(),
+                speedY: fixed ? 0 : getRandomSpeed()
+            })
         )
     }
 }
@@ -92,16 +167,19 @@ function clearParticles() {
     particles = []
 }
 
-function generateParticle(x, y) {
+function generateParticle({ x, y, speedX, speedY, connectable = true, drawable = true }) {
     return {
         x,
         y,
         xDirection: getRandomDirection(),
         yDirection: getRandomDirection(),
-        speedX: getRandomSpeed(),
-        speedY: getRandomSpeed()
+        speedX,
+        speedY,
+        connectable,
+        drawable
     }
 }
+
 
 function getRandomSpeed() {
     return random(config.min_speed, config.max_speed);
@@ -139,14 +217,19 @@ function draw() {
             newY = particle.y + particle.speedY * particle.xDirection
         }
 
-        drawParticle(newX, newY)
+        if (particle.drawable) {
+            drawParticle(newX, newY)
+        }
+
         particle.x = newX
         particle.y = newY
 
+        if (particle.connectable) {
         const nearestParticles = findNearestParticles(particle)
         nearestParticles.forEach(nearParticle => {
             connectParticles(particle, nearParticle)
         })
+    }
     })
 
     stats.end()

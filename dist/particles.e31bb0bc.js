@@ -3693,18 +3693,20 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
-var canvas = document.querySelector('canvas');
+var canvas = document.querySelector('#particles');
 var ctx = canvas.getContext('2d');
-var particles = [];
+var textCanvas = document.querySelector('#text');
+var textCtx = textCanvas.getContext('2d');
+window.particles = [];
 var config = {
-  particles_amount: 60,
+  particles_amount: 200,
   new_particles_amount: 10,
   particle_width: 1,
-  particle_color: '#fff',
-  line_color: [255, 255, 255],
+  particle_color: 'rgb(107,255,0)',
+  line_color: [107, 255, 0],
   min_speed: 0.1,
   max_speed: 0.4,
-  max_connecting_distance: 50
+  max_connecting_distance: 44
 };
 var gui = new dat.GUI({
   width: 340
@@ -3717,16 +3719,69 @@ gui.addColor(config, 'particle_color').name('Particle color');
 gui.addColor(config, 'line_color').name('Connection color');
 particlesAmountController.onChange(function () {
   clearParticles();
-  addParticles(config.particles_amount);
+  setup();
 });
 var stats = new _stats.default();
-stats.showPanel(0);
 document.body.appendChild(stats.dom);
 setup();
-addParticles(config.particles_amount);
 window.requestAnimationFrame(draw);
 
+function addFixedParticles(data) {
+  data.forEach(function (item) {
+    particles.push(generateParticle({
+      x: item.x,
+      y: item.y,
+      speedX: 0,
+      speedY: 0,
+      connectable: false,
+      drawable: false
+    }));
+  });
+}
+
+function strokeText() {
+  var size = 160;
+  textCtx.font = "bold ".concat(size, "px Impact");
+  textCtx.strokeStyle = "rgb(".concat(config.line_color, ")"); // textCtx.setLineDash([10, 10]);
+
+  textCtx.strokeText('JANIGA', 100, size + 200);
+}
+
+function getData() {
+  var imageData = textCtx.getImageData(0, 0, canvas.width, canvas.height);
+  console.log('imageData:', imageData);
+  var x = 1;
+  var y = 1;
+  var boundary = [];
+
+  for (var i = 0; i < imageData.data.length; i += 4) {
+    var red = imageData.data[i];
+    var green = imageData.data[i + 1];
+    var blue = imageData.data[i + 2];
+    var alpha = imageData.data[i + 3];
+
+    if (i > 0 && i / 4 % imageData.width === 0) {
+      x = 0;
+      y++;
+    }
+
+    x++; // console.log('color', red, green, blue, alpha)
+
+    if (alpha > 0) {
+      // console.log('x y:', x, y)
+      boundary.push({
+        x: x,
+        y: y
+      });
+    }
+  }
+
+  console.log('boundary:', boundary.length);
+  return boundary;
+}
+
 function drawBackground() {
+  ctx.setLineDash([40, 20, 50, 10]);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
@@ -3736,6 +3791,14 @@ function setup() {
   drawBackground();
   attachHandlers();
   addCursorParticle();
+  addParticles(config.particles_amount);
+  strokeText();
+  var textBoundary = getData();
+  var transformedBoundary = textBoundary.filter(function (item, index) {
+    return index % 10 === 0;
+  });
+  console.log('transformedBoundary:', transformedBoundary.length);
+  addFixedParticles(transformedBoundary);
 }
 
 function addCursorParticle() {
@@ -3760,11 +3823,20 @@ function attachHandlers() {
 function setCanvasSize(width, height) {
   canvas.setAttribute('width', width);
   canvas.setAttribute('height', height);
+  textCanvas.setAttribute('width', width);
+  textCanvas.setAttribute('height', height);
 }
 
 function addParticles(amount, baseX, baseY) {
   for (var i = 0; i < amount; i++) {
-    particles.push(generateParticle(baseX || (0, _random.default)(0, ctx.canvas.width), baseY || (0, _random.default)(0, ctx.canvas.height)));
+    var fixed = 0; //random(0, 1)
+
+    particles.push(generateParticle({
+      x: baseX || (0, _random.default)(0, ctx.canvas.width),
+      y: baseY || (0, _random.default)(0, ctx.canvas.height),
+      speedX: fixed ? 0 : getRandomSpeed(),
+      speedY: fixed ? 0 : getRandomSpeed()
+    }));
   }
 }
 
@@ -3772,14 +3844,24 @@ function clearParticles() {
   particles = [];
 }
 
-function generateParticle(x, y) {
+function generateParticle(_ref) {
+  var x = _ref.x,
+      y = _ref.y,
+      speedX = _ref.speedX,
+      speedY = _ref.speedY,
+      _ref$connectable = _ref.connectable,
+      connectable = _ref$connectable === void 0 ? true : _ref$connectable,
+      _ref$drawable = _ref.drawable,
+      drawable = _ref$drawable === void 0 ? true : _ref$drawable;
   return {
     x: x,
     y: y,
     xDirection: getRandomDirection(),
     yDirection: getRandomDirection(),
-    speedX: getRandomSpeed(),
-    speedY: getRandomSpeed()
+    speedX: speedX,
+    speedY: speedY,
+    connectable: connectable,
+    drawable: drawable
   };
 }
 
@@ -3819,13 +3901,19 @@ function draw() {
       newY = particle.y + particle.speedY * particle.xDirection;
     }
 
-    drawParticle(newX, newY);
+    if (particle.drawable) {
+      drawParticle(newX, newY);
+    }
+
     particle.x = newX;
     particle.y = newY;
-    var nearestParticles = findNearestParticles(particle);
-    nearestParticles.forEach(function (nearParticle) {
-      connectParticles(particle, nearParticle);
-    });
+
+    if (particle.connectable) {
+      var nearestParticles = findNearestParticles(particle);
+      nearestParticles.forEach(function (nearParticle) {
+        connectParticles(particle, nearParticle);
+      });
+    }
   });
   stats.end();
   window.requestAnimationFrame(draw);
