@@ -49,11 +49,26 @@ function setup () {
     setCanvasSize(window.innerWidth, window.innerHeight)
     drawBackground()
     attachHandlers()
+    addCursorParticle()
+}
+
+function addCursorParticle() {
+    particles[0] = generateParticle({
+        x: 0,
+        y: 0,
+        speedX: 0,
+        speedY: 0
+    })
 }
 
 function attachHandlers() {
     canvas.addEventListener('click', event => {
         addParticles(config.new_particles_amount, event.offsetX, event.offsetY)
+    })
+
+    canvas.addEventListener('mousemove', event => {
+        particles[0].x = event.offsetX
+        particles[0].y = event.offsetY
     })
 }
 

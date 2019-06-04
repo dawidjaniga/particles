@@ -3735,11 +3735,25 @@ function setup() {
   setCanvasSize(window.innerWidth, window.innerHeight);
   drawBackground();
   attachHandlers();
+  addCursorParticle();
+}
+
+function addCursorParticle() {
+  particles[0] = generateParticle({
+    x: 0,
+    y: 0,
+    speedX: 0,
+    speedY: 0
+  });
 }
 
 function attachHandlers() {
   canvas.addEventListener('click', function (event) {
     addParticles(config.new_particles_amount, event.offsetX, event.offsetY);
+  });
+  canvas.addEventListener('mousemove', function (event) {
+    particles[0].x = event.offsetX;
+    particles[0].y = event.offsetY;
   });
 }
 
@@ -3874,7 +3888,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "52702" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58654" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
