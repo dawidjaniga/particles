@@ -6,6 +6,6 @@
   "author": "Dawid Janiga <dawidjaniga@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "lodash": "4.17.11"
+    "lodash": "4.17.12"
   }
 }
