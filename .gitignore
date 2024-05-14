@@ -64,3 +64,4 @@ typings/
 .cache
 .parcel-cache
 dist
+.vercel
