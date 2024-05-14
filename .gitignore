@@ -62,3 +62,5 @@ typings/
 
 # cache
 .cache
+.parcel-cache
+dist
